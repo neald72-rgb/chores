@@ -9,34 +9,23 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Chores">
-<meta name="theme-color" content="#1B2340">
+<meta name="theme-color" content="#000000">
 <style>
 :root{
-  --bg:#F3F5FA;--surface:#FFFFFF;--ink:#1B2340;--muted:#5F6785;--line:#D9DEEB;
-  --c-health:#0E9F8E;--c-help:#D98A00;--c-char:#6B4FD8;
-  --t-health:#DDF4F0;--t-help:#FBEBCB;--t-char:#E6E0FB;
-  --danger:#C23A3A;
+  --bg:#000000;--surface:rgba(2,16,8,.86);--ink:#00FF41;--muted:#2FB257;--line:#0B4D22;
+  --c-health:#00FF41;--c-help:#2EF2D0;--c-char:#C6FF3D;
+  --t-health:#03260F;--t-help:#032624;--t-char:#1B2605;
+  --danger:#FF4D4D;
+  color-scheme:dark;
   box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
-}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --bg:#12162A;--surface:#1B2140;--ink:#EEF0FA;--muted:#9AA2C4;--line:#303865;
-    --c-health:#3CCDB9;--c-help:#F2B33D;--c-char:#A592FF;
-    --t-health:#17403F;--t-help:#46391A;--t-char:#2F2A5C;--danger:#FF7B7B;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#12162A;--surface:#1B2140;--ink:#EEF0FA;--muted:#9AA2C4;--line:#303865;
-  --c-health:#3CCDB9;--c-help:#F2B33D;--c-char:#A592FF;
-  --t-health:#17403F;--t-help:#46391A;--t-char:#2F2A5C;--danger:#FF7B7B;
 }
 *{box-sizing:border-box}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"Avenir Next","Trebuchet MS",Verdana,sans-serif;font-size:16px;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"SF Mono",ui-monospace,Menlo,Consolas,"Courier New",monospace;font-size:16px;-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit;cursor:pointer}
 .app{max-width:520px;margin:0 auto;padding:14px 12px 40px}
 header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
-h1{margin:0;font-family:"Arial Rounded MT Bold","Trebuchet MS",Impact,sans-serif;font-size:27px;line-height:1.1;letter-spacing:-.3px}
+h1{margin:0;font-family:"SF Mono",ui-monospace,Menlo,Consolas,"Courier New",monospace;font-size:22px;line-height:1.15;letter-spacing:1px;text-transform:uppercase;text-shadow:0 0 10px var(--ink)}
 .total{background:var(--ink);color:var(--bg);border-radius:14px;padding:6px 12px;text-align:center;min-width:72px}
 .total b{display:block;font-size:26px;line-height:1}
 .total span{display:block;font-size:12px}
@@ -50,7 +39,7 @@ h1{margin:0;font-family:"Arial Rounded MT Bold","Trebuchet MS",Impact,sans-serif
 .days div{text-align:center;font-size:12px;color:var(--muted);padding:2px 0}
 .days div b{display:block;font-size:14px;color:var(--ink)}
 .days .today b{background:var(--ink);color:var(--bg);border-radius:8px}
-.cat{margin-top:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px 8px 10px}
+.cat{margin-top:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:8px 8px 10px;box-shadow:0 0 14px rgba(0,255,65,.08)}
 .cat h2{margin:0 0 6px 2px;font-size:15px;display:flex;justify-content:space-between;align-items:center}
 .cat h2 i{font-style:normal;font-weight:400;font-size:13px;color:var(--muted)}
 .cell{display:flex;flex-direction:column;gap:3px}
@@ -68,6 +57,8 @@ h1{margin:0;font-family:"Arial Rounded MT Bold","Trebuchet MS",Impact,sans-serif
 .rv{padding:10px 0;border-bottom:1px solid var(--line);font-size:14.5px}
 .rv div{margin-top:2px}
 .rv small{color:var(--muted)}
+#rain{position:fixed;inset:0;width:100%;height:100%;z-index:0;opacity:.28;pointer-events:none}
+.app{position:relative;z-index:1}
 /* sheet */
 .scrim{position:fixed;inset:0;background:rgba(10,14,30,.55);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet{background:var(--bg);width:100%;max-width:520px;max-height:92%;overflow:auto;border-radius:20px 20px 0 0;padding:16px 14px calc(18px + env(safe-area-inset-bottom,0px))}
@@ -75,7 +66,7 @@ h1{margin:0;font-family:"Arial Rounded MT Bold","Trebuchet MS",Impact,sans-serif
 .sheet .sub{color:var(--muted);font-size:13px;margin-bottom:10px}
 label.f{display:block;font-weight:700;font-size:14px;margin:12px 0 5px}
 .combo{position:relative}
-.combo input,.sheet input[type=text],.sheet input[type=password],.sheet textarea{width:100%;font:inherit;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
+.combo input,.sheet input[type=text],.sheet input[type=password],.sheet input[type=date],.sheet textarea{width:100%;font:inherit;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink)}
 .combo input:focus,.sheet input:focus,.sheet textarea:focus{outline:2px solid var(--accent,var(--c-char));outline-offset:1px}
 .opts{margin-top:4px;background:var(--surface);border:1px solid var(--line);border-radius:10px;max-height:170px;overflow:auto}
 .opts button{display:flex;justify-content:space-between;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:10px 12px;font-size:15px}
@@ -102,6 +93,7 @@ summary{font-weight:700;cursor:pointer;padding:4px 0}
 </style>
 </head>
 <body>
+<canvas id="rain" aria-hidden="true"></canvas>
 <div class="app" id="app"></div>
 <div id="layer"></div>
 <script>
@@ -137,7 +129,7 @@ function save(){
   mem=S;
   try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
 }
-var S=load();
+var S=load();S.pens=S.pens||[];
 (function(){if(S.v>=2)return;var m=S.lists&&S.lists.help;if(m){["h","e"].forEach(function(k){var cust=m[k].filter(function(it){return it.custom});m[k]=DEF.help[k].map(function(t){return{t:t}}).concat(cust)})}S.v=2;save()})();
 (function(){if(S.v>=3)return;var m=S.lists&&S.lists.health;if(m){var cust=(m.h||[]).concat(m.e||[]).filter(function(it){return it.custom});m.h=[];m.e=DEF.health.e.map(function(t){return{t:t}}).concat(cust)}S.v=3;save()})();
 (function(){if(S.v>=4)return;CATS.forEach(function(c){var m=S.lists&&S.lists[c.id];if(!m)return;var seen={},out=[];(m.h||[]).concat(m.e||[]).forEach(function(it){var k=it.t.toLowerCase();if(!seen[k]){seen[k]=1;out.push(it)}});m.h=[];m.e=out});S.v=4;save()})();
@@ -150,10 +142,12 @@ function ymd(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"
 function addDays(d,n){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);return x}
 function weekStart(d){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());return addDays(x,-((x.getDay()+1)%7))}
 function isCap(t){return /x2$/i.test(t)}
+function money(n){return(n<0?"−$":"$")+Math.abs(n)}
 
 function prune(){
   var cutoff=ymd(addDays(new Date(),-183)),ch=false;
   Object.keys(S.logs).forEach(function(k){if(k<cutoff){delete S.logs[k];ch=true}});
+  var np=S.pens.filter(function(p){return p.d>=cutoff});if(np.length!==S.pens.length){S.pens=np;ch=true}
   if(ch)save();
 }
 prune();
@@ -189,7 +183,9 @@ function weekTotal(ws){
       });
     });
   }
-  return{base:base,bonus:bonus,total:base+bonus,pend:pend};
+  var pen=0,pa=ymd(ws),pz=ymd(addDays(ws,6));
+  S.pens.forEach(function(p){if(p.d>=pa&&p.d<=pz)pen+=p.amt});
+  return{base:base,bonus:bonus,pen:pen,total:base+bonus-pen,pend:pend};
 }
 function weekCountOf(ws,cat,item,exDay,exSlot){
   var n=0;
@@ -209,9 +205,9 @@ function render(){
   var end=addDays(V.ws,6),t=ymd(today()),wt=weekTotal(V.ws);
   var h='<header><div><h1>'+(S.name?esc(S.name)+"’s Week":"My Week")+'</h1></div>'
     +'<div style="display:flex;gap:6px;align-items:flex-start"><button class="gear" data-a="settings" aria-label="Parent settings">⚙︎</button>'
-    +'<div class="total"><b>$'+wt.total+'</b><span>'+(wt.bonus?'incl. $'+wt.bonus+' bonus':'approved')+'</span>'+(wt.pend?'<span>+$'+wt.pend+' pending</span>':'')+'</div></div></header>';
+    +'<div class="total"><b>'+money(wt.total)+'</b><span>'+(wt.bonus?'incl. $'+wt.bonus+' bonus':'approved')+'</span>'+(wt.pen?'<span>after −$'+wt.pen+' penalties</span>':'')+(wt.pend?'<span>+$'+wt.pend+' pending</span>':'')+'</div></div></header>';
   var pc=pendList().filter(function(r){return r.st==="pend"}).length;
-  h+='<div class="rule"><span><b>Parent check:</b> a parent must approve your logs within 24 hours or they won’t count.</span><button data-a="review">Parent approval'+(pc?' ('+pc+')':'')+'</button></div>';
+  h+='<div class="rule"><span><b>Parent check:</b> a parent must approve your logs within 24 hours or they won’t count.</span><button data-a="review">Parent area'+(pc?' ('+pc+')':'')+'</button></div>';
   h+='<div class="nav"><button data-a="prev" aria-label="Previous week"'+(V.ws<=oldest?" disabled":"")+'>‹</button>'
     +'<div class="range">'+MON[V.ws.getMonth()]+' '+V.ws.getDate()+' – '+MON[end.getMonth()]+' '+end.getDate()
     +'<small>'+(isCur?"This week":(V.ws<cur?"Past week (view only)":"Next week"))+'</small></div>'
@@ -235,6 +231,8 @@ function render(){
     }
     h+='</div></section>';
   });
+  var wp=S.pens.filter(function(p){return p.d>=ymd(V.ws)&&p.d<=ymd(end)}).sort(function(x,y){return x.d<y.d?-1:1});
+  h+='<section class="cat pen"><h2>Penalties<i>'+(wt.pen?'−$'+wt.pen+' this week':'none this week')+'</i></h2>'+wp.map(function(p){return'<div class="li"><span>'+niceDate(p.d)+' · '+esc(p.why)+'</span><b style="color:var(--danger)">−$'+p.amt+'</b></div>'}).join("")+'</section>';
   h+='<p class="hint">Each item earns $1, plus a $1 bonus if you did it without being asked. Two logs per day in each category. Past days can’t be changed after the week ends. The week resets Saturday morning.</p>';
   document.getElementById("app").innerHTML=h;
 }
@@ -353,23 +351,31 @@ function openSetPin(){
     +'<div class="msg" id="pmsg"></div><div class="actions"><button class="btn" data-p="close">Cancel</button><button class="btn pri" data-p="setpin">Save PIN</button></div>');
 }
 function openPin(){
-  layer('<h3>'+(PINMODE==="review"?"Parent approval":"Parent settings")+'</h3><div class="sub">Enter the parent PIN.</div>'
+  layer('<h3>'+(PINMODE==="review"?"Parent area":"Parent settings")+'</h3><div class="sub">Enter the parent PIN.</div>'
     +'<input id="pin1" type="password" inputmode="numeric" maxlength="4" placeholder="PIN" autocomplete="off">'
     +'<div class="msg" id="pmsg"></div><div class="actions"><button class="btn" data-p="close">Cancel</button><button class="btn pri" data-p="enter">Open</button></div>');
 }
 var SC="health",PINMODE="settings";
 function afterPin(){if(PINMODE==="review")openReview();else openSettings()}
-function openReview(){
-  var L=pendList(),h='<h3>Parent approval</h3><div class="sub">Approve logs your child did in the last 24 hours. Older logs need “Approve anyway”.</div>';
+function openReview(sp){
+  var L=pendList(),h='<h3>Parent area</h3><div class="sub">Approve what your child did in the last 24 hours. Older logs need \u201cApprove anyway\u201d.</div>';
   if(!L.length)h+='<p>Nothing is waiting for approval.</p>';
   L.forEach(function(r){
     var b=r.sl.b||[],items=r.sl.h.map(function(t){return{k:"h",t:t}}).concat(r.sl.e.map(function(t){return{k:"e",t:t}}));
-    h+='<div class="rv"><b>'+niceDate(r.d)+' · '+r.c.name+' · Log '+(r.i+1)+'</b>'+(r.st==="late"?' <small>(over 24 hours)</small>':'')
+    h+='<div class="rv"><b>'+niceDate(r.d)+' \u00b7 '+r.c.name+' \u00b7 Log '+(r.i+1)+'</b>'+(r.st==="late"?' <small>(over 24 hours)</small>':'')
       +items.map(function(x){return'<div>'+esc(x.t)+(b.indexOf(x.k+":"+x.t)>=0?' <small>+$1 bonus</small>':'')+'</div>'}).join("")
       +'<button class="btn" data-p="appr" data-d="'+r.d+'" data-c="'+r.c.id+'" data-i="'+r.i+'" style="margin-top:8px;width:100%">'+(r.st==="late"?"Approve anyway":"Approve")+'</button></div>';
   });
+  var since=ymd(addDays(today(),-14)),PL=S.pens.filter(function(p){return p.d>=since}).sort(function(x,y){return x.d<y.d?1:-1});
+  h+='<h3 id="pensec" style="margin-top:22px">Penalties</h3><div class="sub">Subtract dollars for bad behaviour. Your child can see penalties but can\u2019t add or remove them.</div>'
+    +'<label class="f" for="pn-w">What happened?</label><input id="pn-w" type="text" maxlength="80" placeholder="e.g. Fighting with sibling">'
+    +'<label class="f" for="pn-a">Amount to subtract ($)</label><input id="pn-a" type="text" inputmode="numeric" value="1">'
+    +'<label class="f" for="pn-d">Date</label><input id="pn-d" type="date" value="'+ymd(today())+'" max="'+ymd(today())+'">'
+    +'<div class="msg" id="penmsg"></div><button class="btn" data-p="addpen" style="width:100%">Add penalty</button>'
+    +(PL.length?'<div class="sub" style="margin-top:14px">Last 14 days</div>'+PL.map(function(p){return'<div class="li"><span>'+niceDate(p.d)+' \u00b7 \u2212$'+p.amt+' \u00b7 '+esc(p.why)+'</span><button data-p="delpen" data-id="'+p.id+'">Remove</button></div>'}).join(""):'');
   h+='<div class="actions">'+(L.some(function(r){return r.st==="pend"})?'<button class="btn" data-p="apprall">Approve all on time</button>':'')+'<button class="btn pri" data-p="rdone">Done</button></div>';
   layer(h);
+  if(sp){var el=document.getElementById("pensec");if(el&&el.scrollIntoView)el.scrollIntoView()}
 }
 function openSettings(){
   var cat=CATS.filter(function(c){return c.id===SC})[0];
@@ -399,9 +405,16 @@ function settingsAction(b){
   else if(a==="add"){keepName();var k=b.dataset.k,i=document.getElementById("new-"+k),t=i.value.trim();
     if(t&&!S.lists[SC][k].some(function(x){return x.t.toLowerCase()===t.toLowerCase()})){S.lists[SC][k].push({t:t});save()}openSettings()}
   else if(a==="copy"){var ta=document.getElementById("bk");ta.select();var ok=false;try{ok=document.execCommand("copy")}catch(e){}document.getElementById("bmsg").textContent=ok?"Copied.":"Select the text and copy it manually."}
-  else if(a==="restore"){try{var o=JSON.parse(document.getElementById("bk").value);if(!o||!o.lists||!o.logs)throw 0;S=o;save();prune();render();document.getElementById("bmsg").textContent="Restored."}catch(e){document.getElementById("bmsg").textContent="That text isn’t a valid backup."}}
+  else if(a==="restore"){try{var o=JSON.parse(document.getElementById("bk").value);if(!o||!o.lists||!o.logs)throw 0;S=o;S.pens=S.pens||[];save();prune();render();document.getElementById("bmsg").textContent="Restored."}catch(e){document.getElementById("bmsg").textContent="That text isn’t a valid backup."}}
   else if(a==="chpin"){S.pin="";save();openSetPin()}
-  else if(a==="erase"){var m=document.getElementById("emsg");if(b.dataset.sure){S.logs={};save();render();m.textContent="All logs erased."}else{b.dataset.sure="1";b.textContent="Tap again to confirm";}}
+  else if(a==="erase"){var m=document.getElementById("emsg");if(b.dataset.sure){S.logs={};S.pens=[];save();render();m.textContent="All logs erased."}else{b.dataset.sure="1";b.textContent="Tap again to confirm";}}
+  else if(a==="addpen"){
+    var w=document.getElementById("pn-w").value.trim(),am=document.getElementById("pn-a").value.trim(),dd=document.getElementById("pn-d").value,pm=document.getElementById("penmsg");
+    if(!w){pm.textContent="Say what happened.";return}
+    if(!/^\d{1,3}$/.test(am)||+am<1){pm.textContent="Enter a whole dollar amount.";return}
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(dd)||dd>ymd(today())){pm.textContent="Pick today or an earlier date.";return}
+    S.pens.push({id:Date.now(),d:dd,amt:+am,why:w,t:Date.now()});save();openReview(true)}
+  else if(a==="delpen"){var pid=+b.dataset.id;S.pens=S.pens.filter(function(p){return p.id!==pid});save();openReview(true)}
   else if(a==="appr"){var asl=((S.logs[b.dataset.d]||{})[b.dataset.c]||[])[+b.dataset.i];if(asl){asl.a=true;save()}openReview()}
   else if(a==="apprall"){pendList().forEach(function(r){if(r.st==="pend")r.sl.a=true});save();openReview()}
   else if(a==="rdone"){closeSheet();render()}
@@ -409,6 +422,27 @@ function settingsAction(b){
 }
 function keepName(){var n=document.getElementById("nm");if(n){S.name=n.value.trim();save()}}
 
+(function(){
+  var cv=document.getElementById("rain");if(!cv||!cv.getContext)return;
+  if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches){cv.style.display="none";return}
+  var cx=cv.getContext("2d");if(!cx)return;var ch="ﾊﾐﾋｰｳｼﾅﾓﾆｻﾜﾂｵﾘｱﾎﾃﾏｹﾒｴｶｷﾑﾕﾗｾﾈｽﾀﾇﾍ0123456789".split(""),fs=16,cols=0,drops=[],last=0;
+  function size(){cv.width=window.innerWidth;cv.height=window.innerHeight;cols=Math.ceil(cv.width/fs);drops=[];for(var i=0;i<cols;i++)drops[i]=Math.random()*cv.height/fs}
+  size();window.addEventListener("resize",size);
+  function frame(ts){
+    if(ts-last>75){
+      last=ts;
+      cx.fillStyle="rgba(0,0,0,.08)";cx.fillRect(0,0,cv.width,cv.height);
+      cx.fillStyle="#00FF41";cx.font=fs+"px monospace";
+      for(var i=0;i<cols;i++){
+        cx.fillText(ch[Math.floor(Math.random()*ch.length)],i*fs,drops[i]*fs);
+        if(drops[i]*fs>cv.height&&Math.random()>.975)drops[i]=0;
+        drops[i]++;
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
 if("serviceWorker" in navigator&&location.protocol==="https:"){window.addEventListener("load",function(){try{navigator.serviceWorker.register("sw.js").catch(function(){})}catch(e){}})}
 render();
 </script>
