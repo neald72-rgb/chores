@@ -132,7 +132,7 @@ summary{font-weight:700;cursor:pointer;padding:4px 0}
 <script>
 "use strict";
 var KEY="chorechart.v1";
-var APPV="7",APPD="Nov 8, 2026"; /* bump with the cache name in sw.js on every release */
+var APPV="8",APPD="Nov 8, 2026"; /* bump with the cache name in sw.js on every release */
 var CATS=[
   {id:"health",name:"Be Healthy",cls:"health",color:"var(--c-health)",tint:"var(--t-health)"},
   {id:"help",name:"Help Out",cls:"help",color:"var(--c-help)",tint:"var(--t-help)"},
@@ -294,7 +294,7 @@ function render(){
   });
   var wp=S.pens.filter(function(p){return p.d>=ymd(V.ws)&&p.d<=ymd(end)}).sort(function(x,y){return x.d<y.d?-1:1});
   h+='<section class="cat pen"><h2>Penalties<i>'+(wt.pen?'−$'+wt.pen+' this week':'none this week')+'</i></h2>'+wp.map(function(p){return'<div class="li"><span>'+niceDate(p.d)+' · '+esc(p.why)+'</span><b style="color:var(--danger)">−$'+p.amt+'</b></div>'}).join("")+'</section>';
-  h+='<p class="hint">A parent sets the points for each chore when they approve your log. Doing a chore on your own earns a $1 bonus. Two logs per day in each category. Past days can’t be changed after the week ends. The week resets Saturday morning.</p>';
+  h+='<p class="hint">Log what you did, then go over it with a parent. Together you’ll review what each chore is worth, and a parent approves your log within 24 hours. To earn more, take on longer chores, ones that challenge you, or ones that make the house and the family better. Doing a chore on your own, without being asked, earns extra. You get two logs per day in each category. An approved log can’t be changed, but you can remove it. Past weeks are view only, and a new week starts every Saturday.</p>';
   document.getElementById("app").innerHTML=h;
 }
 
@@ -324,7 +324,7 @@ function openLog(day,cid,idx){
   if(D.h.length){D.e=D.e.concat(D.h.filter(function(t){return D.e.indexOf(t)<0}));D.b=D.b.map(function(x){return x.charAt(0)==="h"?"e"+x.slice(1):x});D.h=[]}
   focus=null;
   var html='<div style="--accent:'+cat.color+';--accent-t:'+cat.tint+'">'
-    +'<h3>'+cat.name+'</h3><div class="sub">'+niceDate(day)+' · Log '+(idx+1)+(ro?" · view only":"")+(ex?' · '+({ok:"Approved ✓",pend:"Waiting for parent",late:"Not approved in time"})[status(ex)]:"")+'</div>'+(lock?'<div class="sub" style="margin-top:-6px">Approved logs can\u2019t be edited, but you can remove one.</div>':"")+(ro?"":'<div class="sub" style="margin-top:-6px">Tap “On my own, without being asked!” to earn a $1 bonus. A parent sets the points for each chore when they approve it. <b>A parent must approve this log within 24 hours for it to count. Changing an approved log sends it back for approval.</b></div>')
+    +'<h3>'+cat.name+'</h3><div class="sub">'+niceDate(day)+' · Log '+(idx+1)+(ro?" · view only":"")+(ex?' · '+({ok:"Approved ✓",pend:"Waiting for parent",late:"Not approved in time"})[status(ex)]:"")+'</div>'+(lock?'<div class="sub" style="margin-top:-6px">Approved logs can\u2019t be edited, but you can remove one.</div>':"")+(ro?"":'<div class="sub" style="margin-top:-6px">Tap “On my own, without being asked!” for any chore nobody asked you to do. You’ll review what each chore is worth with a parent. <b>A parent must approve this log within 24 hours for it to count. Once it’s approved, it can’t be changed.</b></div>')
     
 
     +'<label class="f" for="in-e">What did you do?</label><div class="combo">'+(ro?"":'<input id="in-e" type="text" placeholder="Pick or type your own" autocomplete="off">')+'<div class="chips" id="ch-e"></div><div id="op-e"></div></div>'
