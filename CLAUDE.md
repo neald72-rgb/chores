@@ -5,14 +5,14 @@ A kid's chore tracker that runs as an installable, offline web app (PWA) on each
 ## Files
 
 - `index.html`: the whole app (HTML, CSS and vanilla JS in one file). No build step, no dependencies.
-- `sw.js`: service worker, stale-while-revalidate cache so the app opens offline.
+- `sw.js`: service worker. Opening the app is network-first (skips the browser cache, falls back to the saved copy if offline or slower than 3 s). Icons and manifest are stale-while-revalidate. Requests with `?fresh=` bypass it.
 - `manifest.json`, `icon-192.png`, `icon-512.png`, `apple-touch-icon.png`: install metadata and icons.
 - Hosted on GitHub Pages from the `main` branch. Merging to `main` publishes.
 
 ## Rules for changes
 
 - Keep it a single `index.html` with no external scripts, fonts or network calls.
-- When `index.html`, `sw.js`, the icons or the precache list change, bump the cache name in `sw.js` (`const C="chores-vN"`) so phones refresh.
+- On every release, bump the cache name in `sw.js` (`const C="chores-vN"`) and, to the same N, `APPV` and `APPD` (date) in `index.html`. The app compares its `APPV` with the live one to decide whether to reload.
 - Phones keep old data. Any change to the stored shape needs a migration: an IIFE after `var S=load()` keyed on `S.v`, then bump `S.v`. Never break existing logs. (`fresh()` deliberately starts at `v:7` so the v8 library migration runs for new installs too.)
 - Storage key: `chorechart.v1`. Do not rename it, or the repository, or phones lose their history.
 - iPhone is the main target. The home screen app keeps its own storage, separate from Safari.
@@ -39,6 +39,7 @@ A kid's chore tracker that runs as an installable, offline web app (PWA) on each
 - Approvals are final. The parent cannot change points afterward. The child cannot edit an approved log but can remove it (double tap). Editing a pending log keeps its original timestamp. Editing is allowed only before approval.
 - Parent area (gear and "Parent area" button, PIN protected): approve logs and set points, add or remove penalties, choose the chore library, set name and theme, toggle "child can type own chores", backup and restore, change PIN, erase logs.
 - Chore library: curated chores per category, grouped (`LIB`). Existing chores stay ticked. The rest start hidden. The child's dropdown shows only ticked chores. The child cannot type the name of a hidden chore.
+- Updates: the app checks for a newer `APPV` on launch and whenever it comes back to the foreground (at most every 30 s), and reloads. If a sheet is open it waits until the sheet closes. A per-session guard stops reload loops. Parent settings has an "Update app" button that clears the saved copy (never localStorage) and reloads, and shows the version; offline, it says so and changes nothing.
 - Themes: `data-theme` on `<html>`. Sunrise is the default (base `:root`), Ocean and Matrix override tokens. Matrix also runs the falling-code canvas. A tiny script in `<head>` sets the theme from localStorage before first paint.
 
 ## Non-goals (decided)

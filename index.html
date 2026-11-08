@@ -132,6 +132,7 @@ summary{font-weight:700;cursor:pointer;padding:4px 0}
 <script>
 "use strict";
 var KEY="chorechart.v1";
+var APPV="7",APPD="Nov 8, 2026"; /* bump with the cache name in sw.js on every release */
 var CATS=[
   {id:"health",name:"Be Healthy",cls:"health",color:"var(--c-health)",tint:"var(--t-health)"},
   {id:"help",name:"Help Out",cls:"help",color:"var(--c-help)",tint:"var(--t-help)"},
@@ -310,7 +311,7 @@ document.getElementById("app").addEventListener("click",function(e){
 /* ---------- log sheet ---------- */
 var D=null,focus=null;
 function layer(html){document.getElementById("layer").innerHTML=html?'<div class="scrim" id="scrim"><div class="sheet" id="sheet">'+html+'</div></div>':""}
-function closeSheet(){layer("");D=null;focus=null}
+function closeSheet(){layer("");D=null;focus=null;if(wantReload)location.reload()}
 function niceDate(k){var p=k.split("-"),d=new Date(+p[0],+p[1]-1,+p[2]);return DAYN[(d.getDay()+1)%7]+" "+MON[d.getMonth()]+" "+d.getDate()}
 
 function openLog(day,cid,idx){
@@ -505,6 +506,7 @@ function openSettings(){
   h+='<details><summary>Backup and restore</summary><div class="sub" style="margin-top:6px">Copy this text to save a backup. Paste a backup below and tap Restore to load it.</div>'
     +'<textarea id="bk" rows="5">'+esc(JSON.stringify(S))+'</textarea>'
     +'<div class="addrow"><button data-p="copy" style="flex:1;padding:10px">Copy backup</button><button data-p="restore" style="flex:1;padding:10px">Restore</button></div><div class="msg" id="bmsg"></div></details>';
+  h+='<label class="f">App updates</label><button class="btn" data-p="upd" style="width:100%">Update app</button><div class="sub" style="margin-top:6px" id="umsg">Version '+APPV+' · updated '+APPD+'. Your child’s logs and settings are kept.</div>';
   h+='<details><summary>Change PIN or erase data</summary><div class="addrow"><button data-p="chpin" style="flex:1;padding:10px">Change PIN</button><button data-p="erase" style="flex:1;padding:10px;color:var(--danger)">Erase all logs</button></div><div class="msg" id="emsg"></div></details>';
   h+='<div class="actions"><button class="btn pri" data-p="done">Done</button></div>';
   layer(h);
@@ -542,6 +544,7 @@ function settingsAction(b){
   else if(a==="apprall"){Array.prototype.forEach.call(document.querySelectorAll('.rv[data-st="pend"]'),approveCard);save();openReview()}
   else if(a==="rdone"){closeSheet();render()}
   else if(a==="done"){keepName();closeSheet();render()}
+  else if(a==="upd"){keepName();forceUpdate(b)}
 }
 function approveCard(card){
   if(!card)return;
@@ -579,8 +582,47 @@ function keepName(){var n=document.getElementById("nm");if(n){S.name=n.value.tri
   window.setRain=function(on){if(on){size();if(!running){running=true;requestAnimationFrame(frame)}}else running=false};
 })();
 applyTheme();
-if("serviceWorker" in navigator&&location.protocol==="https:"){window.addEventListener("load",function(){try{navigator.serviceWorker.register("sw.js").catch(function(){})}catch(e){}})}
+if("serviceWorker" in navigator&&location.protocol==="https:"){window.addEventListener("load",function(){try{navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).catch(function(){})}catch(e){}})}
+
+/* ---------- updates ---------- */
+var wantReload=false,lastCheck=0;
+function latestVersion(){
+  /* "fresh" tells sw.js to skip its cache; no-store skips the browser cache */
+  return fetch("./index.html?fresh="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.text()})
+    .then(function(t){var m=t.match(/var APPV="([^"]+)"/);return m?m[1]:null});
+}
+function swUpdate(){
+  if(!("serviceWorker" in navigator))return Promise.resolve();
+  return navigator.serviceWorker.getRegistration().then(function(r){if(r)return r.update()}).catch(function(){});
+}
+function hardReload(){
+  var jobs=[swUpdate()];
+  if(window.caches)jobs.push(caches.keys().then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}).catch(function(){}));
+  return Promise.all(jobs).then(function(){location.reload()});
+}
+function forceUpdate(b){
+  var m=document.getElementById("umsg");
+  b.disabled=true;b.textContent="Checking for updates…";
+  latestVersion().then(function(v){
+    m.textContent=v&&v!==APPV?"Installing version "+v+"…":"Reloading version "+APPV+"…";
+    return hardReload();
+  }).catch(function(){
+    b.disabled=false;b.textContent="Update app";
+    m.textContent="You’re offline. Try again when connected.";
+  });
+}
+function checkUpdate(){
+  if(Date.now()-lastCheck<30000)return;
+  lastCheck=Date.now();swUpdate();
+  latestVersion().then(function(v){
+    if(!v||v===APPV)return;
+    try{if(sessionStorage.getItem("chorechart.tried")===v)return;sessionStorage.setItem("chorechart.tried",v)}catch(e){}
+    if(document.getElementById("layer").innerHTML)wantReload=true;else location.reload();
+  }).catch(function(){});
+}
+document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")checkUpdate()});
 render();
+checkUpdate();
 </script>
 </body>
 </html>
