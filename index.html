@@ -59,6 +59,15 @@ h1{margin:0;font-family:"SF Mono",ui-monospace,Menlo,Consolas,"Courier New",mono
 .rv small{color:var(--muted)}
 #rain{position:fixed;inset:0;width:100%;height:100%;z-index:0;opacity:.28;pointer-events:none}
 .app{position:relative;z-index:1}
+.lrow{display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--line)}
+.lrow button{flex:none;background:none;border:0;color:var(--muted);font-size:15px;padding:8px}
+.chk{display:flex;align-items:center;gap:10px;flex:1;padding:7px 0;font-size:14.5px;line-height:1.3}
+.chk input{width:20px;height:20px;flex:none;accent-color:var(--ink)}
+.addrow input{flex:1;min-width:0}
+.it{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px}
+.tier{display:flex;gap:4px;flex:none;margin:0}
+.tier button{width:36px;height:36px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface);font-weight:700;padding:0}
+.tier button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 /* sheet */
 .scrim{position:fixed;inset:0;background:rgba(10,14,30,.55);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet{background:var(--bg);width:100%;max-width:520px;max-height:92%;overflow:auto;border-radius:20px 20px 0 0;padding:16px 14px calc(18px + env(safe-area-inset-bottom,0px))}
@@ -112,6 +121,23 @@ var DEF={
   char:{h:[],
         e:["Read for 1 hour","Practice a useful skill for 30 minutes","Create something for 1 hour","Do a random act of kindness for someone","Research something in depth and teach someone about it"]}
 };
+var LIB={
+ health:[["Exercise",["30 min upper body workout x2","30 min lower body workout x2","30 min cardio workout x2","Played a sport for at least 60 mins","Go for a 30 min walk or run","Stretch or do yoga for 15 mins","Practice a sport skill for 30 mins"]],
+  ["Self-care",["Floss x2","Brush teeth morning and night","Drink 1 L of water","Get 8+ hours of sleep","Shower and clean up"]],
+  ["Food",["Eat a fruit or vegetable with every meal","Prepare a healthy snack","No sugary drinks today"]],
+  ["Screens and mind",["Screen-free for 1 hour before bed","Meditate or breathe quietly for 10 minutes","Spend 30 minutes outside"]]],
+ help:[["Kitchen",["Empty and fill dishwasher","Wash pots and pans in sink","Help cook a meal for min. 20 mins.","Wipe counters and table after a meal","Pack your own lunch","Set or clear the table"]],
+  ["Cleaning",["Dust your room","Vacuum the house (all floors)","Clean a common area well","Clean the bathroom (sink, toilet, mirror)","Take out the garbage and recycling","Tidy your room completely (floor, bed, desk)"]],
+  ["Pets",["Walk Dog for 20 mins. minimum","Pick up all the dog poop","Brush the dog and cat","Feed and water the pets","Clean the litter box"]],
+  ["Yard and outdoors",["Mow/shovel/rake the lawn","Water the plants or garden","Sweep the porch or driveway","Wash the car"]],
+  ["Laundry",["Do a full load of laundry (wash, dry, fold)","Put away your clean clothes","Change your bed sheets","Fold and put away family laundry"]],
+  ["Family",["Help a sibling with homework for 20 mins","Run an errand for the family","Help a neighbour or relative with a task"]]],
+ char:[["Reading and learning",["Read for 1 hour","Practice a useful skill for 30 minutes","Research something in depth and teach someone about it","Learn something new online for 30 minutes","Practice an instrument for 30 minutes","Practice a language for 20 minutes","Do homework without being reminded","Study for a test for 45 minutes"]],
+  ["Creating",["Create something for 1 hour","Write in a journal for 10 minutes","Cook a meal for the family","Build or fix something"]],
+  ["Kindness",["Do a random act of kindness for someone","Spend 30 minutes of screen-free time with family","Call or write to a relative or friend","Thank someone sincerely"]],
+  ["Responsibility",["Plan your week and goals for 10 minutes","Budget or save some of your money","Handle a task or appointment yourself","Volunteer for 1 hour"]]]
+};
+var GROUP={};CATS.forEach(function(c){GROUP[c.id]={};LIB[c.id].forEach(function(g){g[1].forEach(function(t){GROUP[c.id][t.toLowerCase()]=g[0]})})});
 var DAYN=["Sat","Sun","Mon","Tue","Wed","Thu","Fri"];
 var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 var mem=null;
@@ -129,13 +155,23 @@ function save(){
   mem=S;
   try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
 }
-var S=load();S.pens=S.pens||[];
+var S=load();S.pens=S.pens||[];S.opts=S.opts||{own:true};S.tiers=S.tiers||{};
 (function(){if(S.v>=2)return;var m=S.lists&&S.lists.help;if(m){["h","e"].forEach(function(k){var cust=m[k].filter(function(it){return it.custom});m[k]=DEF.help[k].map(function(t){return{t:t}}).concat(cust)})}S.v=2;save()})();
 (function(){if(S.v>=3)return;var m=S.lists&&S.lists.health;if(m){var cust=(m.h||[]).concat(m.e||[]).filter(function(it){return it.custom});m.h=[];m.e=DEF.health.e.map(function(t){return{t:t}}).concat(cust)}S.v=3;save()})();
 (function(){if(S.v>=4)return;CATS.forEach(function(c){var m=S.lists&&S.lists[c.id];if(!m)return;var seen={},out=[];(m.h||[]).concat(m.e||[]).forEach(function(it){var k=it.t.toLowerCase();if(!seen[k]){seen[k]=1;out.push(it)}});m.h=[];m.e=out});S.v=4;save()})();
 (function(){if(S.v>=5)return;var m=S.lists&&S.lists.health,t="Played a sport for at least 60 mins";if(m&&!m.e.some(function(it){return it.t.toLowerCase()===t.toLowerCase()}))m.e.push({t:t});S.v=5;save()})();
 (function(){if(S.v>=6)return;var m=S.lists&&S.lists.help;if(m){var cust=(m.h||[]).concat(m.e||[]).filter(function(it){return it.custom});m.h=[];m.e=DEF.help.e.map(function(t){return{t:t}}).concat(cust)}S.v=6;save()})();
 (function(){if(S.v>=7)return;var m=S.lists&&S.lists.char;if(m){var cust=(m.h||[]).concat(m.e||[]).filter(function(it){return it.custom});m.h=[];m.e=DEF.char.e.map(function(t){return{t:t}}).concat(cust)}S.v=7;save()})();
+(function(){
+  if(S.v>=8)return;
+  CATS.forEach(function(c){
+    var m=S.lists&&S.lists[c.id];if(!m)return;
+    var have={};
+    m.e.forEach(function(it){var k=it.t.toLowerCase();have[k]=1;var g=GROUP[c.id][k];if(g&&!it.custom)it.g=g});
+    LIB[c.id].forEach(function(grp){grp[1].forEach(function(t){var k=t.toLowerCase();if(!have[k]){m.e.push({t:t,g:grp[0],on:false});have[k]=1}})});
+  });
+  S.v=8;save();
+})();
 
 function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 function ymd(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
@@ -172,14 +208,14 @@ function weekTotal(ws){
     CATS.forEach(function(c){
       (L[c.id]||[]).forEach(function(sl){
         if(!sl)return;
-        var st=status(sl),b=sl.b||[],v=0,vb=0;
-        sl.h.forEach(function(t){v++;if(b.indexOf("h:"+t)>=0)vb++});
+        var st=status(sl),b=sl.b||[],pp=sl.p||{},v=0,vb=0;
+        sl.h.forEach(function(t){v+=pp["h:"+t]||1;if(b.indexOf("h:"+t)>=0)vb++});
         sl.e.forEach(function(t){
           var ok=true;
           if(isCap(t)){cap[t]=(cap[t]||0)+1;ok=cap[t]<=2}
-          if(ok){v++;if(b.indexOf("e:"+t)>=0)vb++}
+          if(ok){v+=pp["e:"+t]||1;if(b.indexOf("e:"+t)>=0)vb++}
         });
-        if(st==="ok"){base+=v;bonus+=vb}else if(st==="pend")pend+=v+vb;
+        if(st==="ok"){base+=v;bonus+=vb}else if(st==="pend")pend++;
       });
     });
   }
@@ -205,7 +241,7 @@ function render(){
   var end=addDays(V.ws,6),t=ymd(today()),wt=weekTotal(V.ws);
   var h='<header><div><h1>'+(S.name?esc(S.name)+"’s Week":"My Week")+'</h1></div>'
     +'<div style="display:flex;gap:6px;align-items:flex-start"><button class="gear" data-a="settings" aria-label="Parent settings">⚙︎</button>'
-    +'<div class="total"><b>'+money(wt.total)+'</b><span>'+(wt.bonus?'incl. $'+wt.bonus+' bonus':'approved')+'</span>'+(wt.pen?'<span>after −$'+wt.pen+' penalties</span>':'')+(wt.pend?'<span>+$'+wt.pend+' pending</span>':'')+'</div></div></header>';
+    +'<div class="total"><b>'+money(wt.total)+'</b><span>'+(wt.bonus?'incl. $'+wt.bonus+' bonus':'approved')+'</span>'+(wt.pen?'<span>after −$'+wt.pen+' penalties</span>':'')+(wt.pend?'<span>'+wt.pend+' log'+(wt.pend>1?'s':'')+' waiting</span>':'')+'</div></div></header>';
   var pc=pendList().filter(function(r){return r.st==="pend"}).length;
   h+='<div class="rule"><span><b>Parent check:</b> a parent must approve your logs within 24 hours or they won’t count.</span><button data-a="review">Parent area'+(pc?' ('+pc+')':'')+'</button></div>';
   h+='<div class="nav"><button data-a="prev" aria-label="Previous week"'+(V.ws<=oldest?" disabled":"")+'>‹</button>'
@@ -233,7 +269,7 @@ function render(){
   });
   var wp=S.pens.filter(function(p){return p.d>=ymd(V.ws)&&p.d<=ymd(end)}).sort(function(x,y){return x.d<y.d?-1:1});
   h+='<section class="cat pen"><h2>Penalties<i>'+(wt.pen?'−$'+wt.pen+' this week':'none this week')+'</i></h2>'+wp.map(function(p){return'<div class="li"><span>'+niceDate(p.d)+' · '+esc(p.why)+'</span><b style="color:var(--danger)">−$'+p.amt+'</b></div>'}).join("")+'</section>';
-  h+='<p class="hint">Each item earns $1, plus a $1 bonus if you did it without being asked. Two logs per day in each category. Past days can’t be changed after the week ends. The week resets Saturday morning.</p>';
+  h+='<p class="hint">A parent sets the points for each chore when they approve your log. Doing a chore on your own earns a $1 bonus. Two logs per day in each category. Past days can’t be changed after the week ends. The week resets Saturday morning.</p>';
   document.getElementById("app").innerHTML=h;
 }
 
@@ -258,15 +294,16 @@ function openLog(day,cid,idx){
   var ro=V.ws<weekStart(today());
   var ex=((S.logs[day]||{})[cid]||[])[idx];
   ro=ro||!!(ex&&status(ex)==="late");
-  D={day:day,cid:cid,idx:idx,cat:cat,ro:ro,h:ex?ex.h.slice():[],e:ex?ex.e.slice():[],b:ex&&ex.b?ex.b.slice():[],q:{h:"",e:""}};
+  var lock=!ro&&!!(ex&&ex.a);ro=ro||lock;
+  D={day:day,cid:cid,idx:idx,cat:cat,ro:ro,lock:lock,h:ex?ex.h.slice():[],e:ex?ex.e.slice():[],b:ex&&ex.b?ex.b.slice():[],q:{h:"",e:""}};
   if(D.h.length){D.e=D.e.concat(D.h.filter(function(t){return D.e.indexOf(t)<0}));D.b=D.b.map(function(x){return x.charAt(0)==="h"?"e"+x.slice(1):x});D.h=[]}
   focus=null;
   var html='<div style="--accent:'+cat.color+';--accent-t:'+cat.tint+'">'
-    +'<h3>'+cat.name+'</h3><div class="sub">'+niceDate(day)+' · Log '+(idx+1)+(ro?" · view only":"")+(ex?' · '+({ok:"Approved ✓",pend:"Waiting for parent",late:"Not approved in time"})[status(ex)]:"")+'</div>'+(ro?"":'<div class="sub" style="margin-top:-6px">Each item earns $1. Tap “On my own, without being asked!” to earn a $1 bonus. <b>A parent must approve this log within 24 hours for it to count. Changing an approved log sends it back for approval.</b></div>')
+    +'<h3>'+cat.name+'</h3><div class="sub">'+niceDate(day)+' · Log '+(idx+1)+(ro?" · view only":"")+(ex?' · '+({ok:"Approved ✓",pend:"Waiting for parent",late:"Not approved in time"})[status(ex)]:"")+'</div>'+(lock?'<div class="sub" style="margin-top:-6px">Approved logs can\u2019t be edited, but you can remove one.</div>':"")+(ro?"":'<div class="sub" style="margin-top:-6px">Tap “On my own, without being asked!” to earn a $1 bonus. A parent sets the points for each chore when they approve it. <b>A parent must approve this log within 24 hours for it to count. Changing an approved log sends it back for approval.</b></div>')
     
 
     +'<label class="f" for="in-e">What did you do?</label><div class="combo">'+(ro?"":'<input id="in-e" type="text" placeholder="Pick or type your own" autocomplete="off">')+'<div class="chips" id="ch-e"></div><div id="op-e"></div></div>'
-    +'<div class="actions">'+(ro?'<button class="btn pri" data-s="close">Close</button>'
+    +'<div class="actions">'+(lock?'<button class="btn" data-s="close">Close</button><button class="btn dng" data-s="clear">Remove log</button>':ro?'<button class="btn pri" data-s="close">Close</button>'
       :'<button class="btn" data-s="close">Cancel</button>'+(ex?'<button class="btn dng" data-s="clear">Clear</button>':"")+'<button class="btn pri" data-s="save">Save</button>')
     +'</div></div>';
   layer(html);
@@ -276,7 +313,7 @@ function openLog(day,cid,idx){
     inp.addEventListener("focus",function(){focus=k;D.q[k]=inp.value;drawCombo(k)});
     inp.addEventListener("input",function(){focus=k;D.q[k]=inp.value;drawCombo(k)});
     inp.addEventListener("blur",function(){setTimeout(function(){if(focus===k&&document.activeElement!==inp){focus=null;if(D)drawCombo(k)}},180)});
-    inp.addEventListener("keydown",function(ev){if(ev.key==="Enter"){ev.preventDefault();var q=inp.value.trim();if(q){addItem(k,q)}}});
+    inp.addEventListener("keydown",function(ev){if(ev.key==="Enter"){ev.preventDefault();var q=inp.value.trim();if(q){var rt=resolveTyped(D.cid,q);if(rt)addItem(k,rt)}}});
   });
 }
 function drawCombo(k){
@@ -285,7 +322,7 @@ function drawCombo(k){
   c.innerHTML=D[k].map(function(t,i){var on=D.b.indexOf(k+":"+t)>=0;return'<span class="chip">'+esc(t)+((D.ro&&!on)?"":'<button class="bn'+(on?" on":"")+'" data-b="'+k+'" data-i="'+i+'" aria-pressed="'+on+'"'+(D.ro?" disabled":"")+'>'+(on?"On my own, without being asked! +$1":"On my own, without being asked!")+'</button>')+(D.ro?"":'<button data-r="'+k+'" data-i="'+i+'" aria-label="Remove">×</button>')+'</span>'}).join("");
   var q=(D.q[k]||"").trim().toLowerCase(),list=S.lists[D.cid][k],html="";
   if(!D.ro&&focus===k){
-    var shown=list.filter(function(it){return D[k].indexOf(it.t)<0&&it.t.toLowerCase().indexOf(q)>=0});
+    var shown=list.filter(function(it){return it.on!==false&&D[k].indexOf(it.t)<0&&it.t.toLowerCase().indexOf(q)>=0});
     var typed=(D.q[k]||"").trim();
     var exact=list.some(function(it){return it.t.toLowerCase()===q})||D[k].some(function(t){return t.toLowerCase()===q});
     shown.forEach(function(it){
@@ -293,10 +330,18 @@ function drawCombo(k){
       if(isCap(it.t)){note='<small>'+Math.min(2,weekCountOf(V.ws,D.cid,it.t,D.day,D.idx)+D.e.filter(function(x){return x===it.t}).length)+' of 2 this week</small>'}
       html+='<button data-o="'+k+'" data-t="'+esc(it.t)+'"><span>'+esc(it.t)+(it.custom?'<small>yours</small>':'')+'</span>'+note+'</button>';
     });
-    if(typed&&!exact)html+='<button class="add" data-n="'+k+'">+ Add “'+esc(typed)+'”</button>';
+    if(typed&&!exact&&S.opts.own!==false)html+='<button class="add" data-n="'+k+'">+ Add “'+esc(typed)+'”</button>';
+    if(!html&&!typed&&!list.some(function(it){return it.on!==false}))html='<button disabled style="color:var(--muted)">No chores chosen yet. Ask a parent to add some.</button>';
     if(html)html='<div class="opts">'+html+'</div>';
   }
   o.innerHTML=html;
+}
+function resolveTyped(cid,q){
+  var l=q.toLowerCase(),list=S.lists[cid].e,hit=null,any=false,i;
+  for(i=0;i<list.length;i++){if(list[i].t.toLowerCase()===l){any=true;if(list[i].on!==false)hit=list[i].t}}
+  if(hit)return hit;
+  if(any)return null;
+  return S.opts.own!==false?q:null;
 }
 function addItem(k,t){
   if(D[k].indexOf(t)<0)D[k].push(t);
@@ -317,11 +362,11 @@ document.getElementById("layer").addEventListener("click",function(e){
   if((b=t.closest("[data-s]"))){
     var s=b.dataset.s;
     if(s==="close")closeSheet();
-    else if(s==="clear"){setSlot(null);closeSheet();render()}
+    else if(s==="clear"){if(D.lock&&!b.dataset.sure){b.dataset.sure="1";b.textContent="Tap again to remove";return}setSlot(null);closeSheet();render()}
     else if(s==="save"){
       ["h","e"].forEach(function(k){
         var inp=document.getElementById("in-"+k),q=inp?inp.value.trim():"";
-        if(q&&D[k].indexOf(q)<0)D[k].push(q);
+        if(q){var rt=resolveTyped(D.cid,q);if(rt&&D[k].indexOf(rt)<0)D[k].push(rt)}
       });
       ["h","e"].forEach(function(k){
         var list=S.lists[D.cid][k];
@@ -355,15 +400,16 @@ function openPin(){
     +'<input id="pin1" type="password" inputmode="numeric" maxlength="4" placeholder="PIN" autocomplete="off">'
     +'<div class="msg" id="pmsg"></div><div class="actions"><button class="btn" data-p="close">Cancel</button><button class="btn pri" data-p="enter">Open</button></div>');
 }
-var SC="health",PINMODE="settings";
+var SC="health",PINMODE="settings",LIBFROM="settings",LO={};
+function gname(it){return it.custom?"Added by child":(it.g||"My chores")}
 function afterPin(){if(PINMODE==="review")openReview();else openSettings()}
 function openReview(sp){
-  var L=pendList(),h='<h3>Parent area</h3><div class="sub">Approve what your child did in the last 24 hours. Older logs need \u201cApprove anyway\u201d.</div>';
+  var L=pendList(),h='<h3>Parent area</h3><div class="sub"><b>Points for each chore:</b> 1 = up to 20 min · 2 = 20–60 min · 3 = over 1 hour or stretches their skills. Tap a number, then approve.</div><div class="sub">Approve what your child did in the last 24 hours. Older logs need \u201cApprove anyway\u201d.</div>';
   if(!L.length)h+='<p>Nothing is waiting for approval.</p>';
   L.forEach(function(r){
     var b=r.sl.b||[],items=r.sl.h.map(function(t){return{k:"h",t:t}}).concat(r.sl.e.map(function(t){return{k:"e",t:t}}));
-    h+='<div class="rv"><b>'+niceDate(r.d)+' \u00b7 '+r.c.name+' \u00b7 Log '+(r.i+1)+'</b>'+(r.st==="late"?' <small>(over 24 hours)</small>':'')
-      +items.map(function(x){return'<div>'+esc(x.t)+(b.indexOf(x.k+":"+x.t)>=0?' <small>+$1 bonus</small>':'')+'</div>'}).join("")
+    h+='<div class="rv" data-st="'+r.st+'" data-d="'+r.d+'" data-c="'+r.c.id+'" data-i="'+r.i+'"><b>'+niceDate(r.d)+' \u00b7 '+r.c.name+' \u00b7 Log '+(r.i+1)+'</b>'+(r.st==="late"?' <small>(over 24 hours)</small>':'')
+      +items.map(function(x){var tv=S.tiers[x.t.toLowerCase()]||1;return'<div class="it"><span>'+esc(x.t)+(b.indexOf(x.k+":"+x.t)>=0?' <small>+$1 bonus</small>':'')+'</span><div class="tier" data-key="'+esc(x.k+":"+x.t)+'">'+[1,2,3].map(function(n){return'<button data-p="tier" data-v="'+n+'" class="'+(n===tv?"on":"")+'" aria-label="'+n+' point'+(n>1?'s':'')+'">'+n+'</button>'}).join("")+'</div></div>'}).join("")
       +'<button class="btn" data-p="appr" data-d="'+r.d+'" data-c="'+r.c.id+'" data-i="'+r.i+'" style="margin-top:8px;width:100%">'+(r.st==="late"?"Approve anyway":"Approve")+'</button></div>';
   });
   var since=ymd(addDays(today(),-14)),PL=S.pens.filter(function(p){return p.d>=since}).sort(function(x,y){return x.d<y.d?1:-1});
@@ -373,21 +419,53 @@ function openReview(sp){
     +'<label class="f" for="pn-d">Date</label><input id="pn-d" type="date" value="'+ymd(today())+'" max="'+ymd(today())+'">'
     +'<div class="msg" id="penmsg"></div><button class="btn" data-p="addpen" style="width:100%">Add penalty</button>'
     +(PL.length?'<div class="sub" style="margin-top:14px">Last 14 days</div>'+PL.map(function(p){return'<div class="li"><span>'+niceDate(p.d)+' \u00b7 \u2212$'+p.amt+' \u00b7 '+esc(p.why)+'</span><button data-p="delpen" data-id="'+p.id+'">Remove</button></div>'}).join(""):'');
+  h+='<h3 style="margin-top:22px">Chores</h3><div class="sub">Choose which chores your child sees in their lists.</div><button class="btn" data-p="lib" data-f="review" style="width:100%">Choose your child’s chores</button>';
   h+='<div class="actions">'+(L.some(function(r){return r.st==="pend"})?'<button class="btn" data-p="apprall">Approve all on time</button>':'')+'<button class="btn pri" data-p="rdone">Done</button></div>';
   layer(h);
   if(sp){var el=document.getElementById("pensec");if(el&&el.scrollIntoView)el.scrollIntoView()}
 }
-function openSettings(){
-  var cat=CATS.filter(function(c){return c.id===SC})[0];
-  var h='<h3>Parent settings</h3><div class="sub">Changes apply to this phone only.</div>'
-    +'<label class="f" for="nm">Child’s name</label><input id="nm" type="text" value="'+esc(S.name)+'" placeholder="Name">'
-    +'<label class="f">Item lists</label><div class="addrow" style="margin-top:0">'
-    +CATS.map(function(c){return'<button data-p="cat" data-c="'+c.id+'" style="flex:1;'+(c.id===SC?"background:var(--ink);color:var(--bg)":"")+'">'+c.name.replace("Develop ","")+'</button>'}).join("")+'</div>';
-  [["e","Activities"]].forEach(function(p){
-    h+='<details open><summary>'+p[1]+'</summary>'
-      +S.lists[SC][p[0]].map(function(it,i){return'<div class="li"><span>'+esc(it.t)+(it.custom?'<em>added by child</em>':'')+'</span><button data-p="del" data-k="'+p[0]+'" data-i="'+i+'">Delete</button></div>'}).join("")
-      +'<div class="addrow"><input type="text" id="new-'+p[0]+'" placeholder="Add an item (end with x2 to cap at 2 per week)"><button data-p="add" data-k="'+p[0]+'">Add</button></div></details>';
+function openLibrary(){
+  var list=S.lists[SC].e,order=LIB[SC].map(function(g){return g[0]}).concat(["My chores","Added by child"]),gr={};
+  list.forEach(function(it,i){var g=gname(it);(gr[g]=gr[g]||[]).push({it:it,i:i})});
+  var on=list.filter(function(it){return it.on!==false}).length;
+  var h='<h3>Chore lists</h3><div class="sub">Tick the chores your child will see. Unticked chores stay in your library, hidden from them.</div>'
+    +'<div class="addrow" style="margin-top:0">'+CATS.map(function(c){return'<button data-p="lcat" data-c="'+c.id+'" style="flex:1;padding:10px 4px;'+(c.id===SC?"background:var(--ink);color:var(--bg)":"")+'">'+c.name.replace("Develop ","")+'</button>'}).join("")+'</div>'
+    +'<div class="sub" style="margin-top:10px"><b id="lib-count">'+on+' of '+list.length+'</b> chosen for '+(S.name?esc(S.name):"your child")+'</div>'
+    +'<div class="addrow" style="margin-top:0"><button data-p="selall" style="flex:1;padding:9px">Choose all</button><button data-p="clrall" style="flex:1;padding:9px">Clear all</button></div>';
+  order.forEach(function(g){
+    var rows=gr[g];if(!rows)return;
+    var n=rows.filter(function(r){return r.it.on!==false}).length;
+    h+='<details data-g="'+esc(g)+'"'+(LO[SC+"|"+g]?" open":"")+'><summary>'+esc(g)+' \u00b7 <span data-gc>'+n+'</span> of '+rows.length+'</summary>'
+      +rows.map(function(r){return'<div class="lrow"><label class="chk"><input type="checkbox" data-t="'+r.i+'"'+(r.it.on!==false?" checked":"")+'><span>'+esc(r.it.t)+'</span></label><button data-p="ldel" data-i="'+r.i+'" aria-label="Delete chore">\u2715</button></div>'}).join("")+'</details>';
   });
+  h+='<label class="f" for="new-e">Add your own chore</label><div class="addrow" style="margin-top:0"><input type="text" id="new-e" placeholder="Name it (end with x2 to cap at 2 a week)"><button data-p="ladd">Add</button></div><div class="msg" id="lmsg"></div>'
+    +'<div class="addrow"><button data-p="lrestore" style="flex:1;padding:10px">Restore suggested chores</button></div>'
+    +'<div class="actions"><button class="btn pri" data-p="ldone">Done</button></div>';
+  layer(h);
+}
+function updLib(){
+  var list=S.lists[SC].e,c=document.getElementById("lib-count");
+  if(c)c.textContent=list.filter(function(it){return it.on!==false}).length+" of "+list.length;
+  Array.prototype.forEach.call(document.querySelectorAll("details[data-g]"),function(d){
+    var g=d.getAttribute("data-g"),n=0;
+    list.forEach(function(it){if(gname(it)===g&&it.on!==false)n++});
+    var sp=d.querySelector("[data-gc]");if(sp)sp.textContent=n;
+  });
+}
+document.getElementById("layer").addEventListener("change",function(e){
+  var t=e.target;
+  if(t.id==="own"){S.opts.own=t.checked;save();return}
+  if(t.matches&&t.matches("input[type=checkbox][data-t]")){var it=S.lists[SC].e[+t.dataset.t];if(it){it.on=t.checked;save();updLib()}}
+});
+document.getElementById("layer").addEventListener("toggle",function(e){
+  var d=e.target;if(d&&d.tagName==="DETAILS"&&d.hasAttribute("data-g"))LO[SC+"|"+d.getAttribute("data-g")]=d.open;
+},true);
+function openSettings(){
+  var cnt=CATS.map(function(c){return c.name.replace("Develop ","")+" "+S.lists[c.id].e.filter(function(it){return it.on!==false}).length}).join(" \u00b7 ");
+  var h='<h3>Parent settings</h3><div class="sub">Changes apply to this phone only.</div>'
+    +'<label class="f" for="nm">Child\u2019s name</label><input id="nm" type="text" value="'+esc(S.name)+'" placeholder="Name">'
+    +'<label class="f">Chore lists</label><button class="btn" data-p="lib" data-f="settings" style="width:100%">Choose your child\u2019s chores</button><div class="sub" style="margin-top:6px">Chosen so far: '+cnt+'</div>'
+    +'<label class="chk" style="margin-top:8px"><input type="checkbox" id="own"'+(S.opts.own!==false?" checked":"")+'><span>Let my child type their own chores</span></label>';
   h+='<details><summary>Backup and restore</summary><div class="sub" style="margin-top:6px">Copy this text to save a backup. Paste a backup below and tap Restore to load it.</div>'
     +'<textarea id="bk" rows="5">'+esc(JSON.stringify(S))+'</textarea>'
     +'<div class="addrow"><button data-p="copy" style="flex:1;padding:10px">Copy backup</button><button data-p="restore" style="flex:1;padding:10px">Restore</button></div><div class="msg" id="bmsg"></div></details>';
@@ -400,12 +478,19 @@ function settingsAction(b){
   if(a==="close")closeSheet();
   else if(a==="setpin"){var v=document.getElementById("pin1").value;if(!/^\d{4}$/.test(v)){document.getElementById("pmsg").textContent="Use exactly 4 digits.";return}S.pin=v;save();afterPin()}
   else if(a==="enter"){if(document.getElementById("pin1").value===S.pin)afterPin();else document.getElementById("pmsg").textContent="That PIN doesn’t match."}
-  else if(a==="cat"){keepName();SC=b.dataset.c;openSettings()}
-  else if(a==="del"){keepName();S.lists[SC][b.dataset.k].splice(+b.dataset.i,1);save();openSettings()}
-  else if(a==="add"){keepName();var k=b.dataset.k,i=document.getElementById("new-"+k),t=i.value.trim();
-    if(t&&!S.lists[SC][k].some(function(x){return x.t.toLowerCase()===t.toLowerCase()})){S.lists[SC][k].push({t:t});save()}openSettings()}
+  else if(a==="lib"){if(b.dataset.f==="settings")keepName();LIBFROM=b.dataset.f;openLibrary()}
+  else if(a==="lcat"){SC=b.dataset.c;openLibrary()}
+  else if(a==="selall"||a==="clrall"){S.lists[SC].e.forEach(function(it){it.on=(a==="selall")});save();openLibrary()}
+  else if(a==="ldel"){S.lists[SC].e.splice(+b.dataset.i,1);save();openLibrary()}
+  else if(a==="ladd"){var nt=document.getElementById("new-e").value.trim(),lm=document.getElementById("lmsg");
+    if(!nt){lm.textContent="Type a chore name first.";return}
+    if(S.lists[SC].e.some(function(x){return x.t.toLowerCase()===nt.toLowerCase()})){lm.textContent="That chore is already in the list.";return}
+    S.lists[SC].e.push({t:nt,on:true});save();openLibrary()}
+  else if(a==="lrestore"){var hv={};S.lists[SC].e.forEach(function(x){hv[x.t.toLowerCase()]=1});
+    LIB[SC].forEach(function(g){g[1].forEach(function(t){if(!hv[t.toLowerCase()]){S.lists[SC].e.push({t:t,g:g[0],on:false})}})});save();openLibrary()}
+  else if(a==="ldone"){if(LIBFROM==="review")openReview();else openSettings()}
   else if(a==="copy"){var ta=document.getElementById("bk");ta.select();var ok=false;try{ok=document.execCommand("copy")}catch(e){}document.getElementById("bmsg").textContent=ok?"Copied.":"Select the text and copy it manually."}
-  else if(a==="restore"){try{var o=JSON.parse(document.getElementById("bk").value);if(!o||!o.lists||!o.logs)throw 0;S=o;S.pens=S.pens||[];save();prune();render();document.getElementById("bmsg").textContent="Restored."}catch(e){document.getElementById("bmsg").textContent="That text isn’t a valid backup."}}
+  else if(a==="restore"){try{var o=JSON.parse(document.getElementById("bk").value);if(!o||!o.lists||!o.logs)throw 0;S=o;S.pens=S.pens||[];S.opts=S.opts||{own:true};S.tiers=S.tiers||{};save();prune();render();document.getElementById("bmsg").textContent="Restored."}catch(e){document.getElementById("bmsg").textContent="That text isn’t a valid backup."}}
   else if(a==="chpin"){S.pin="";save();openSetPin()}
   else if(a==="erase"){var m=document.getElementById("emsg");if(b.dataset.sure){S.logs={};S.pens=[];save();render();m.textContent="All logs erased."}else{b.dataset.sure="1";b.textContent="Tap again to confirm";}}
   else if(a==="addpen"){
@@ -415,10 +500,21 @@ function settingsAction(b){
     if(!/^\d{4}-\d{2}-\d{2}$/.test(dd)||dd>ymd(today())){pm.textContent="Pick today or an earlier date.";return}
     S.pens.push({id:Date.now(),d:dd,amt:+am,why:w,t:Date.now()});save();openReview(true)}
   else if(a==="delpen"){var pid=+b.dataset.id;S.pens=S.pens.filter(function(p){return p.id!==pid});save();openReview(true)}
-  else if(a==="appr"){var asl=((S.logs[b.dataset.d]||{})[b.dataset.c]||[])[+b.dataset.i];if(asl){asl.a=true;save()}openReview()}
-  else if(a==="apprall"){pendList().forEach(function(r){if(r.st==="pend")r.sl.a=true});save();openReview()}
+  else if(a==="tier"){Array.prototype.forEach.call(b.parentNode.children,function(x){x.classList.remove("on")});b.classList.add("on")}
+  else if(a==="appr"){approveCard(b.closest(".rv"));save();openReview()}
+  else if(a==="apprall"){Array.prototype.forEach.call(document.querySelectorAll('.rv[data-st="pend"]'),approveCard);save();openReview()}
   else if(a==="rdone"){closeSheet();render()}
   else if(a==="done"){keepName();closeSheet();render()}
+}
+function approveCard(card){
+  if(!card)return;
+  var sl=((S.logs[card.dataset.d]||{})[card.dataset.c]||[])[+card.dataset.i];if(!sl)return;
+  var pts={};
+  Array.prototype.forEach.call(card.querySelectorAll(".tier"),function(t){
+    var on=t.querySelector("button.on"),n=on?+on.dataset.v:1,key=t.getAttribute("data-key");
+    pts[key]=n;S.tiers[key.slice(2).toLowerCase()]=n;
+  });
+  sl.p=pts;sl.a=true;
 }
 function keepName(){var n=document.getElementById("nm");if(n){S.name=n.value.trim();save()}}
 
